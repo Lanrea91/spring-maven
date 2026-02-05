@@ -7,14 +7,12 @@ on:
 jobs:
   build-and-analyze:
     name: Build, Sonar & Nexus
-    [cite_start]runs-on: self-hosted   # <--- On utilise ton PC, pas le cloud Ubuntu [cite: 398]
+    runs-on: self-hosted
     
     steps:
-      # 1. Récupération du code [cite: 401]
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Installation de Java 17 [cite: 404]
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -22,12 +20,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # 3. Compilation et Tests [cite: 411]
       - name: Build with Maven
         run: mvn clean verify
 
-      # 4. Analyse SonarQube [cite: 415]
-      # Note : Syntaxe adaptée pour PowerShell (`) au lieu de Bash (\)
       - name: SonarQube Analysis
         run: |
           mvn sonar:sonar `
@@ -35,8 +30,6 @@ jobs:
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} `
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
-      # 5. Configuration Authentification Nexus [cite: 346]
-      # Cette action configure automatiquement le fichier settings.xml
       - name: Maven Settings for Nexus
         uses: s4u/maven-settings-action@v2.8.0
         with:
@@ -47,11 +40,9 @@ jobs:
               "password": "${{ secrets.NEXUS_PASSWORD }}"
             }]
 
-      # 6. Publication vers Nexus [cite: 423]
       - name: Publish to Nexus
         run: mvn deploy -DskipTests
 
-      # 7. Sauvegarde du JAR pour l'étape Docker [cite: 430]
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
@@ -67,19 +58,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - [cite_start]name: Download JAR artifact [cite: 444]
+      - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
           name: springboot-jar
           path: target
 
-      - [cite_start]name: Login to Docker Hub [cite: 449]
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - [cite_start]name: Build & Push Docker image [cite: 454]
+      - name: Build & Push Docker image
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/springboot-app:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/springboot-app:latest
