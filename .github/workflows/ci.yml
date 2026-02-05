@@ -20,12 +20,14 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
-        run: mvn clean verify
+      # CORRECTION ICI : On utilise ./mvnw au lieu de mvn
+      - name: Build with Maven Wrapper
+        run: ./mvnw clean verify
 
+      # CORRECTION ICI : ./mvnw
       - name: SonarQube Analysis
         run: |
-          mvn sonar:sonar `
+          ./mvnw sonar:sonar `
           -Dsonar.projectKey=springboot-app `
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} `
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}
@@ -40,8 +42,9 @@ jobs:
               "password": "${{ secrets.NEXUS_PASSWORD }}"
             }]
 
+      # CORRECTION ICI : ./mvnw
       - name: Publish to Nexus
-        run: mvn deploy -DskipTests
+        run: ./mvnw deploy -DskipTests
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
